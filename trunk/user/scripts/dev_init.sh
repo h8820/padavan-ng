@@ -4,16 +4,15 @@ mount -t proc proc /proc
 mount -t sysfs sysfs /sys
 [ -d /proc/bus/usb ] && mount -t usbfs usbfs /proc/bus/usb
 
-size_tmp="20M"
+size_tmp="24M"
 size_var="4M"
-size_etc="6M"
-if [ "$1" == "-l" ]; then
+if [ "$1" == "-l" ] ; then
 	size_tmp="8M"
 	size_var="1M"
 fi
 
 mount -t tmpfs tmpfs /dev   -o size=8K
-mount -t tmpfs tmpfs /etc   -o size=6M,noatime
+mount -t tmpfs tmpfs /etc   -o size=2M,noatime
 mount -t tmpfs tmpfs /home  -o size=1M
 mount -t tmpfs tmpfs /media -o size=8K
 mount -t tmpfs tmpfs /mnt   -o size=8K
@@ -57,26 +56,23 @@ mkdir -p -m 750 /etc/Wireless/iNIC
 mtd_storage.sh load
 
 touch /etc/resolv.conf
+cp -f /etc_ro/ld.so.cache /etc
 
 if [ -f /etc_ro/openssl.cnf ]; then
 	cp -f /etc_ro/openssl.cnf /etc/ssl
-fi
-
-if [ -f /etc_ro/ca-certificates.crt ]; then
-	ln -sf /etc_ro/ca-certificates.crt /etc/ssl/cert.pem
 fi
 
 # create symlinks
 ln -sf /home/root /home/admin
 ln -sf /proc/mounts /etc/mtab
 ln -sf /etc_ro/ethertypes /etc/ethertypes
-ln -sf /etc_ro/netconfig /etc/netconfig
 ln -sf /etc_ro/protocols /etc/protocols
 ln -sf /etc_ro/services /etc/services
 ln -sf /etc_ro/shells /etc/shells
 ln -sf /etc_ro/profile /etc/profile
 ln -sf /etc_ro/e2fsck.conf /etc/e2fsck.conf
 ln -sf /etc_ro/ipkg.conf /etc/ipkg.conf
+ln -sf /etc_ro/ld.so.conf /etc/ld.so.conf
 
 # tune linux kernel
 echo 65536        > /proc/sys/fs/file-max
@@ -86,12 +82,12 @@ echo "1024 65535" > /proc/sys/net/ipv4/ip_local_port_range
 mtd_storage.sh fill
 
 # prepare ssh authorized_keys
-if [ -f /etc/storage/authorized_keys ]; then
+if [ -f /etc/storage/authorized_keys ] ; then
 	cp -f /etc/storage/authorized_keys /home/root/.ssh
 	chmod 600 /home/root/.ssh/authorized_keys
 fi
 
 # perform start script
-if [ -x /etc/storage/start_script.sh ]; then
+if [ -x /etc/storage/start_script.sh ] ; then
 	/etc/storage/start_script.sh
 fi
